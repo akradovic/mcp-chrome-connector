@@ -535,7 +535,7 @@ export class BrowserManager {
       
       // Random scroll simulation
       const scrollDistance = Math.floor(Math.random() * 300) + 100;
-      await page.evaluate((distance) => {
+      await page.evaluate((distance: number) => {
         window.scrollBy(0, distance);
       }, scrollDistance);
       
@@ -623,28 +623,36 @@ export class BrowserManager {
         });
         
         // Remove automation traces from window.chrome
-        if (window.chrome) {
+        if ((window as any).chrome) {
           delete (window as any).chrome.runtime;
         }
         
         // Override permission query
         const originalQuery = window.navigator.permissions.query;
-        window.navigator.permissions.query = (parameters: any) => (
-          parameters.name === 'notifications' ?
-            Promise.resolve({ state: Notification.permission }) :
-            originalQuery(parameters)
-        );
+        window.navigator.permissions.query = (parameters: PermissionDescriptor): Promise<PermissionStatus> => {
+          if (parameters.name === 'notifications') {
+            return Promise.resolve({
+              state: Notification.permission as PermissionState,
+              name: parameters.name,
+              onchange: null,
+              addEventListener: () => {},
+              removeEventListener: () => {},
+              dispatchEvent: () => false
+            } as PermissionStatus);
+          }
+          return originalQuery.call(window.navigator.permissions, parameters);
+        };
         
         // Mock WebGL renderer info
-        const getParameter = WebGLRenderingContext.getParameter;
-        WebGLRenderingContext.prototype.getParameter = function(parameter) {
+        const originalGetParameter = WebGLRenderingContext.prototype.getParameter;
+        WebGLRenderingContext.prototype.getParameter = function(parameter: number) {
           if (parameter === 37445) {
             return 'Intel Inc.';
           }
           if (parameter === 37446) {
             return 'Intel(R) Iris(R) Plus Graphics 655';
           }
-          return getParameter(parameter);
+          return originalGetParameter.call(this, parameter);
         };
         
         // Mock realistic screen properties
@@ -831,8 +839,8 @@ export class BrowserManager {
       this.logger.info(`HTML elements - html: ${hasHtml}, head: ${hasHead}, body: ${hasBody}`);
       
       // Check body content length via different methods
-      const bodyTextLength = await page.locator('body').textContent().then(text => text?.length || 0).catch(() => 0);
-      const bodyHtmlLength = await page.locator('body').innerHTML().then(html => html?.length || 0).catch(() => 0);
+      const bodyTextLength = await page.locator('body').textContent().then((text: string | null) => text?.length || 0).catch(() => 0);
+      const bodyHtmlLength = await page.locator('body').innerHTML().then((html: string) => html?.length || 0).catch(() => 0);
       
       this.logger.info(`Body content - text length: ${bodyTextLength}, html length: ${bodyHtmlLength}`);
       
