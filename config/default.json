@@ -1,0 +1,54 @@
+{
+  "server": {
+    "name": "mcp-chrome-connector",
+    "version": "1.0.0",
+    "description": "Model Context Protocol server for Chrome browser automation"
+  },
+  "browser": {
+    "headless": false,
+    "viewport": {
+      "width": 1280,
+      "height": 720
+    },
+    "timeout": 30000,
+    "args": [
+      "--no-sandbox",
+      "--disable-setuid-sandbox",
+      "--disable-dev-shm-usage",
+      "--disable-background-timer-throttling",
+      "--disable-backgrounding-occluded-windows",
+      "--disable-renderer-backgrounding",
+      "--disable-features=TranslateUI",
+      "--disable-ipc-flooding-protection"
+    ]
+  },
+  "security": {
+    "allowedDomains": [],
+    "blockedDomains": [
+      "localhost",
+      "127.0.0.1",
+      "0.0.0.0",
+      "file://",
+      "ftp://"
+    ],
+    "maxExecutionTime": 30000,
+    "maxMemoryUsage": 512,
+    "enableSandbox": true
+  },
+  "logging": {
+    "level": "info",
+    "format": "json",
+    "transports": {
+      "console": {
+        "enabled": true,
+        "colorize": true
+      },
+      "file": {
+        "enabled": false,
+        "filename": "./logs/mcp-chrome-connector.log",
+        "maxSize": "10MB",
+        "maxFiles": 5
+      }
+    }
+  }
+}
